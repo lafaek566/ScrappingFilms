@@ -21,13 +21,11 @@ export default function Admin() {
   const [form, setForm] = useState(initialFormState);
   const [editId, setEditId] = useState(null);
   const [search, setSearch] = useState("");
-  const token = localStorage.getItem("token");
 
   // Sidebar resize state
-  const [sidebarWidth, setSidebarWidth] = useState(256); // default 256px = w-64
+  const [sidebarWidth, setSidebarWidth] = useState(256);
   const isResizing = useRef(false);
 
-  // Fetch films function (sama seperti kamu)
   const fetchFilms = async () => {
     setLoading(true);
     try {
@@ -47,7 +45,6 @@ export default function Admin() {
     fetchFilms();
   }, []);
 
-  // Resize handlers
   const startResizing = () => {
     isResizing.current = true;
   };
@@ -56,7 +53,6 @@ export default function Admin() {
   };
   const resize = (e) => {
     if (isResizing.current) {
-      // minimal width 150px, maksimal 500px
       const newWidth = Math.min(Math.max(e.clientX, 150), 500);
       setSidebarWidth(newWidth);
     }
@@ -71,18 +67,12 @@ export default function Admin() {
     };
   }, []);
 
-  // Form handlers (sama dengan kamu)
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
-    if (!token) {
-      alert("Token tidak ditemukan. Silakan login terlebih dahulu.");
-      return;
-    }
 
     const url = editId
       ? `http://localhost:3000/api/films/${editId}`
@@ -94,7 +84,6 @@ export default function Admin() {
         method,
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify(form),
       });
@@ -120,17 +109,9 @@ export default function Admin() {
   const handleDelete = async (id) => {
     if (!window.confirm("Yakin ingin menghapus film ini?")) return;
 
-    if (!token) {
-      alert("Token tidak ditemukan. Silakan login terlebih dahulu.");
-      return;
-    }
-
     try {
       const res = await fetch(`http://localhost:3000/api/films/${id}`, {
         method: "DELETE",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
       });
 
       if (!res.ok) {
@@ -320,11 +301,12 @@ export default function Admin() {
               )}
             </tbody>
           </table>
+          {error && (
+            <p className="mt-4 text-red-500 font-semibold text-center">
+              Error: {error}
+            </p>
+          )}
         </div>
-
-        {error && (
-          <div className="text-red-500 mt-4 max-w-4xl mx-auto">{error}</div>
-        )}
       </main>
     </div>
   );

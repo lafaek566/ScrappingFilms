@@ -5,7 +5,6 @@ import Login from "./Page/Login";
 import Register from "./Page/Register";
 import Admin from "./Page/Admin";
 import AdminBanner from "./Page/AdminBanner";
-import ProtectedRoute from "./Page/ProtectedRoute";
 import ScrapeButton from "./components/ScrapeButton";
 
 function App() {
@@ -15,33 +14,12 @@ function App() {
         <Route path="/" element={<Home />} /> {/* Halaman utama */}
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
-        {/* Route admin utama */}
-        <Route
-          path="/admin"
-          element={
-            <ProtectedRoute>
-              <Admin />
-            </ProtectedRoute>
-          }
-        />
-        {/* Route admin banner */}
-        <Route
-          path="/admin/banner"
-          element={
-            <ProtectedRoute>
-              <AdminBanner />
-            </ProtectedRoute>
-          }
-        />
-        {/* Route admin scrape */}
-        <Route
-          path="/admin/scrape"
-          element={
-            <ProtectedRoute>
-              <ScrapeButton />
-            </ProtectedRoute>
-          }
-        />
+        {/* Route admin utama tanpa proteksi */}
+        <Route path="/admin" element={<Admin />} />
+        {/* Route admin banner tanpa proteksi */}
+        <Route path="/admin/banner" element={<AdminBanner />} />
+        {/* Route admin scrape tanpa proteksi */}
+        <Route path="/admin/scrape" element={<ScrapeButton />} />
       </Routes>
     </BrowserRouter>
   );

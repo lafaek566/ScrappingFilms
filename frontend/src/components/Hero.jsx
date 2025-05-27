@@ -25,63 +25,101 @@ function Hero({ films }) {
   const scrollSpeed = 0.5;
   const [selectedTrailer, setSelectedTrailer] = useState(null);
 
+  // Start auto scroll animation loop
   const startAutoScroll = () => {
     const scrollContainer = scrollRef.current;
     if (!scrollContainer) return;
-    scrollIntervalRef.current = setInterval(() => {
-      if (scrollContainer.scrollLeft >= scrollContainer.scrollWidth / 2) {
+
+    let animationFrameId;
+
+    const step = () => {
+      // Buffer 1px supaya tidak lompat bolak-balik terus
+      if (scrollContainer.scrollLeft >= scrollContainer.scrollWidth / 2 - 1) {
         scrollContainer.scrollLeft = 0;
       } else {
         scrollContainer.scrollLeft += scrollSpeed;
       }
-    }, 10);
+      animationFrameId = requestAnimationFrame(step);
+    };
+
+    animationFrameId = requestAnimationFrame(step);
+
+    scrollIntervalRef.current = {
+      cancel: () => cancelAnimationFrame(animationFrameId),
+    };
   };
 
-  const stopAutoScroll = () => clearInterval(scrollIntervalRef.current);
+  // Stop auto scroll animation
+  const stopAutoScroll = () => {
+    if (scrollIntervalRef.current) {
+      scrollIntervalRef.current.cancel();
+    }
+  };
 
+  // Start auto scroll on mount, stop on unmount
   useEffect(() => {
     startAutoScroll();
     return () => stopAutoScroll();
   }, []);
 
+  // Pause auto scroll on mouse enter, resume on mouse leave (desktop only)
   useEffect(() => {
     const container = scrollRef.current;
     if (!container) return;
-    container.addEventListener("mouseenter", stopAutoScroll);
-    container.addEventListener("mouseleave", startAutoScroll);
+
+    const isTouchDevice =
+      "ontouchstart" in window || navigator.maxTouchPoints > 0;
+
+    if (!isTouchDevice) {
+      container.addEventListener("mouseenter", stopAutoScroll);
+      container.addEventListener("mouseleave", startAutoScroll);
+    }
+
     return () => {
-      container.removeEventListener("mouseenter", stopAutoScroll);
-      container.removeEventListener("mouseleave", startAutoScroll);
+      if (!isTouchDevice) {
+        container.removeEventListener("mouseenter", stopAutoScroll);
+        container.removeEventListener("mouseleave", startAutoScroll);
+      }
     };
   }, []);
 
+  // Handle drag scroll + pause/resume auto scroll during drag
   useEffect(() => {
     const container = scrollRef.current;
+    if (!container) return;
+
     let isDown = false;
     let startX, scrollLeft;
 
     const handleMouseDown = (e) => {
       isDown = true;
+      stopAutoScroll();
       container.classList.add("cursor-grabbing");
       startX = e.pageX - container.offsetLeft;
       scrollLeft = container.scrollLeft;
     };
 
     const handleMouseLeave = () => {
-      isDown = false;
-      container.classList.remove("cursor-grabbing");
+      if (isDown) {
+        isDown = false;
+        container.classList.remove("cursor-grabbing");
+        startAutoScroll();
+      }
     };
 
     const handleMouseUp = () => {
-      isDown = false;
-      container.classList.remove("cursor-grabbing");
+      if (isDown) {
+        isDown = false;
+        container.classList.remove("cursor-grabbing");
+        startAutoScroll();
+      }
     };
 
     const handleMouseMove = (e) => {
       if (!isDown) return;
       e.preventDefault();
       const x = e.pageX - container.offsetLeft;
-      const walk = (x - startX) * 2;
+      const walk = (x - startX) * 2; // scroll-fast
       container.scrollLeft = scrollLeft - walk;
     };
 
@@ -98,6 +136,7 @@ function Hero({ films }) {
     };
   }, []);
 
+  // Scroll left/right buttons
   const handleScroll = (direction) => {
     if (!scrollRef.current) return;
     const scrollAmount = 300;
@@ -107,6 +146,7 @@ function Hero({ films }) {
     });
   };
 
+  // Duplicate films list for infinite scroll illusion
   const limitedFilms = films.slice(0, 10);
   const displayFilms = [...limitedFilms, ...limitedFilms];
 
@@ -115,15 +155,16 @@ function Hero({ films }) {
       <h2 className="text-3xl font-bold mb-6 text-center">Film Populer</h2>
 
       <div className="relative">
-        {/* Tombol scroll kiri - sembunyikan di layar kecil */}
+        {/* Tombol kiri */}
         <button
           onClick={() => handleScroll("left")}
-          className="hidden md:flex absolute left-0 top-1/2 -translate-y-1/2 bg-black bg-opacity-50 text-white p-2 rounded-full z-20 hover:bg-opacity-80"
+          className="flex absolute left-0 top-1/2 -translate-y-1/2 bg-black bg-opacity-50 text-white p-2 rounded-full z-20 hover:bg-opacity-80 backdrop-blur-sm"
           aria-label="Scroll Left"
         >
           <FaChevronLeft size={20} />
         </button>
 
+        {/* Carousel */}
         <div
           ref={scrollRef}
           className="flex overflow-x-auto scrollbar-hide scroll-smooth space-x-4 cursor-grab"
@@ -135,10 +176,10 @@ function Hero({ films }) {
               <div
                 key={idx}
                 className="flex-shrink-0
-                           w-40 h-56  sm:w-48 sm:h-64 md:w-56 md:h-72 lg:w-64 lg:h-80
-                           relative rounded-lg overflow-hidden shadow-lg
-                           hover:scale-105 transition-transform duration-300
-                           group bg-gray-300"
+                  w-40 h-56  sm:w-48 sm:h-64 md:w-56 md:h-72 lg:w-64 lg:h-80
+                  relative rounded-lg overflow-hidden shadow-lg
+                  hover:scale-105 transition-transform duration-300
+                  group bg-gray-300"
               >
                 <img
                   src={thumbnail}
@@ -178,17 +219,17 @@ function Hero({ films }) {
           })}
         </div>
 
-        {/* Tombol scroll kanan - sembunyikan di layar kecil */}
+        {/* Tombol kanan */}
         <button
           onClick={() => handleScroll("right")}
-          className="hidden md:flex absolute right-0 top-1/2 -translate-y-1/2 bg-black bg-opacity-50 text-white p-2 rounded-full z-20 hover:bg-opacity-80"
+          className="flex absolute right-0 top-1/2 -translate-y-1/2 bg-black bg-opacity-50 text-white p-2 rounded-full z-20 hover:bg-opacity-80 backdrop-blur-sm"
           aria-label="Scroll Right"
         >
           <FaChevronRight size={20} />
         </button>
       </div>
 
-      {/* Modal trailer */}
+      {/* Popup trailer */}
       {selectedTrailer && (
         <div className="fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center z-50 p-4">
           <div className="bg-black rounded-lg overflow-hidden max-w-3xl w-full relative">

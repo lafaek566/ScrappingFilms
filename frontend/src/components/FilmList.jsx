@@ -10,7 +10,7 @@ function FilmList({ films, searchTerm = "" }) {
   const [selectedFilmTitle, setSelectedFilmTitle] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
 
-  const FILMS_PER_PAGE = 9; // Total film per halaman
+  const FILMS_PER_PAGE = 18;
 
   const openTrailer = (url) => {
     setTrailerUrl(url);
@@ -49,7 +49,6 @@ function FilmList({ films, searchTerm = "" }) {
 
   const normalize = (str) => str.toLowerCase().trim().replace(/\s+/g, " ");
 
-  // Filter film berdasar searchTerm
   const filteredFilms = films.filter((film) => {
     if (!searchTerm.trim()) return true;
     const q = normalize(searchTerm);
@@ -58,7 +57,6 @@ function FilmList({ films, searchTerm = "" }) {
     return title.includes(q) || desc.includes(q);
   });
 
-  // Pagination slice
   const totalPages = Math.ceil(filteredFilms.length / FILMS_PER_PAGE);
   const startIndex = (currentPage - 1) * FILMS_PER_PAGE;
   const paginatedFilms = filteredFilms.slice(
@@ -66,7 +64,6 @@ function FilmList({ films, searchTerm = "" }) {
     startIndex + FILMS_PER_PAGE
   );
 
-  // Pagination handlers
   const goToPage = (pageNum) => {
     if (pageNum >= 1 && pageNum <= totalPages) {
       setCurrentPage(pageNum);
@@ -75,7 +72,7 @@ function FilmList({ films, searchTerm = "" }) {
   };
 
   return (
-    <div className="transform scale-[0.9] -mt-20 p-7 max-w-6xl mx-auto bg-gray-800 min-h-screen rounded-3xl">
+    <div className="transform scale-[0.95] p-7 max-w-7xl mx-auto bg-gray-900 min-h-screen rounded-3xl">
       <h1 className="text-3xl font-bold mb-8 text-center text-white">
         🎬 Daftar Film
       </h1>
@@ -84,17 +81,8 @@ function FilmList({ films, searchTerm = "" }) {
         <p className="text-center text-gray-400">Tidak ada film ditemukan.</p>
       ) : (
         <>
-          {/* Grid films */}
-          <ul
-            className="
-              grid 
-              grid-cols-1 
-              gap-8 
-              max-h-[calc(3 * (300px + 2rem))] overflow-y-auto
-              sm:grid-cols-2
-              md:grid-cols-3
-            "
-          >
+          {/* Grid container */}
+          <ul className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4 sm:gap-6 w-full max-w-screen-xl mx-auto px-4 sm:px-6">
             {paginatedFilms.map((film) => {
               const hasTrailer = !!film.trailer_url;
               const hasFullMovie =
@@ -104,61 +92,58 @@ function FilmList({ films, searchTerm = "" }) {
               return (
                 <li
                   key={film.id}
-                  className="flex flex-col bg-gray-900 rounded-xl shadow-lg overflow-hidden transition-transform hover:scale-105 hover:shadow-2xl cursor-pointer"
-                  style={{ width: "100%" }}
+                  className="bg-gray-800 rounded-xl shadow-lg overflow-hidden flex flex-col cursor-pointer hover:scale-[1.05] transition-transform duration-300 relative"
                   title={film.title}
                 >
-                  <div
-                    className="relative w-full"
-                    style={{ aspectRatio: "2 / 3" }}
-                  >
+                  {/* Poster container with fixed aspect ratio */}
+                  <div className="relative w-full aspect-[2/3] bg-gray-700">
                     {film.poster_url ? (
                       <img
                         src={film.poster_url}
                         alt={film.title}
-                        className="absolute inset-0 w-full h-full object-contain bg-gray-700"
+                        className="w-full h-full object-contain"
                         loading="lazy"
                       />
                     ) : (
-                      <div className="absolute inset-0 flex items-center justify-center bg-gray-700 italic text-gray-300">
+                      <div className="flex items-center justify-center h-full italic text-gray-400">
                         No Image
                       </div>
                     )}
 
-                    <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-3 flex justify-between items-end">
-                      <div className="flex space-x-2">
-                        {hasFullMovie && (
-                          <button
-                            onClick={() => openQualityModal(film)}
-                            className="flex items-center space-x-1 px-3 py-1 rounded-md font-semibold text-white bg-blue-600 hover:bg-blue-700"
-                            aria-label={`Watch full movie: ${film.title}`}
-                          >
-                            <FaPlay />
-                            <span>Watch</span>
-                          </button>
-                        )}
-                        {hasTrailer && (
-                          <button
-                            onClick={() => openTrailer(film.trailer_url)}
-                            className="flex items-center space-x-1 px-3 py-1 rounded-md font-semibold text-white bg-red-600 hover:bg-red-700"
-                            aria-label={`Watch trailer: ${film.title}`}
-                          >
-                            <FaYoutube />
-                            <span>Trailer</span>
-                          </button>
-                        )}
-                      </div>
+                    {/* Buttons overlay bottom - adjusted for responsiveness */}
+                    <div className="absolute bottom-2 left-2 right-2 flex flex-wrap justify-center gap-2">
+                      {hasFullMovie && (
+                        <button
+                          onClick={() => openQualityModal(film)}
+                          className="flex items-center justify-center space-x-1 px-3 py-1 rounded-md font-semibold text-white bg-blue-600 hover:bg-blue-700 text-xs min-w-[72px]"
+                          aria-label={`Watch full movie: ${film.title}`}
+                        >
+                          <FaPlay />
+                          <span>Watch</span>
+                        </button>
+                      )}
+                      {hasTrailer && (
+                        <button
+                          onClick={() => openTrailer(film.trailer_url)}
+                          className="flex items-center justify-center space-x-1 px-3 py-1 rounded-md font-semibold text-white bg-red-600 hover:bg-red-700 text-xs min-w-[72px]"
+                          aria-label={`Watch trailer: ${film.title}`}
+                        >
+                          <FaYoutube />
+                          <span>Trailer</span>
+                        </button>
+                      )}
                     </div>
                   </div>
 
-                  <div className="p-4 flex flex-col flex-grow">
+                  {/* Info */}
+                  <div className="p-3 flex flex-col flex-grow">
                     <h2
-                      className="font-semibold text-white text-lg truncate"
+                      className="font-semibold text-white text-sm truncate"
                       title={film.title}
                     >
                       {film.title}
                     </h2>
-                    <div className="text-gray-300 text-sm mt-1 space-y-1 flex-grow">
+                    <div className="text-gray-300 text-xs mt-1 space-y-0.5 flex-grow">
                       <p>Negara: {film.country || "-"}</p>
                       <p>Sutradara: {film.director || "-"}</p>
                       <p>Artis: {film.artists || "-"}</p>
@@ -170,7 +155,7 @@ function FilmList({ films, searchTerm = "" }) {
           </ul>
 
           {/* Pagination */}
-          <div className="flex justify-center space-x-2 mt-8">
+          <div className="flex justify-center space-x-2 mt-8 flex-wrap">
             <button
               onClick={() => goToPage(currentPage - 1)}
               disabled={currentPage === 1}
@@ -250,15 +235,19 @@ function FilmList({ films, searchTerm = "" }) {
             className="bg-gray-900 rounded-lg p-6 max-w-md w-full"
             onClick={(e) => e.stopPropagation()}
           >
-            <h3 className="text-white text-xl mb-4 font-semibold text-center">
-              Pilih kualitas untuk {selectedFilmTitle}
+            <h3 className="text-white text-xl mb-4">
+              Pilih kualitas untuk "{selectedFilmTitle}"
             </h3>
-            <div className="flex flex-col space-y-3 max-h-60 overflow-y-auto">
+            <div className="flex flex-col space-y-3 max-h-80 overflow-y-auto">
               {selectedFilmQualities &&
                 Object.entries(selectedFilmQualities).map(([quality, url]) => (
                   <label
                     key={quality}
-                    className="flex items-center space-x-3 cursor-pointer"
+                    className={`flex items-center space-x-3 cursor-pointer rounded p-2 ${
+                      selectedQuality === quality
+                        ? "bg-blue-600"
+                        : "hover:bg-gray-700"
+                    }`}
                   >
                     <input
                       type="radio"
@@ -272,23 +261,21 @@ function FilmList({ films, searchTerm = "" }) {
                   </label>
                 ))}
             </div>
-            <button
-              onClick={playSelectedQuality}
-              disabled={!selectedQuality}
-              className={`mt-6 w-full py-2 rounded-md font-semibold ${
-                selectedQuality
-                  ? "bg-blue-600 hover:bg-blue-700 text-white cursor-pointer"
-                  : "bg-gray-600 text-gray-300 cursor-not-allowed"
-              }`}
-            >
-              Putar
-            </button>
-            <button
-              onClick={closeQualityModal}
-              className="mt-4 w-full py-2 rounded-md bg-gray-700 text-white font-semibold hover:bg-gray-800"
-            >
-              Batal
-            </button>
+            <div className="mt-6 flex justify-end space-x-3">
+              <button
+                onClick={closeQualityModal}
+                className="px-4 py-2 bg-gray-700 rounded text-white"
+              >
+                Batal
+              </button>
+              <button
+                onClick={playSelectedQuality}
+                disabled={!selectedQuality}
+                className="px-4 py-2 bg-blue-600 rounded text-white disabled:opacity-50"
+              >
+                Putar
+              </button>
+            </div>
           </div>
         </div>
       )}

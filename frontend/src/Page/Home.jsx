@@ -5,6 +5,7 @@ import FilmList from "../components/FilmList";
 import Banner from "../components/Banner";
 import Footer from "../components/Footer";
 import Hero from "../components/Hero";
+import FilterForm from "../components/FilterForm";
 
 function Home() {
   const [films, setFilms] = useState([]);
@@ -46,6 +47,7 @@ function Home() {
           )}
         </div>
       </div>
+      <FilterForm />
 
       {/* Film List Section */}
       <main className="flex-grow w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-8 mb-12">

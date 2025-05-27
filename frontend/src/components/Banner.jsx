@@ -23,6 +23,14 @@ function Banner() {
     }
   }, [banners]);
 
+  useEffect(() => {
+    document.body.style.paddingBottom =
+      visible[0] || visible[1] ? "100px" : "0";
+    return () => {
+      document.body.style.paddingBottom = "0";
+    };
+  }, [visible]);
+
   if (banners.length < 3) return null;
 
   const handleClose = (index) => {
@@ -62,7 +70,7 @@ function Banner() {
             <img
               src={thirdBanner.image_url}
               alt="Landscape Banner"
-              className="w-full object-cover rounded-md mb-1 max-h-36 sm:max-h-52 md:max-h-64"
+              className="w-full object-cover rounded-md mb-1 max-h-36 sm:max-h-42 md:max-h-24"
             />
           )}
           <a
@@ -80,29 +88,29 @@ function Banner() {
       {visible[0] && firstBanner && (
         <div
           ref={bannerRef}
-          className="fixed bottom-4 right-4 left-4 sm:right-8 sm:left-auto bg-yellow-400 text-black p-2 sm:p-3 rounded-md shadow-md text-center z-50 max-w-xs sm:max-w-sm w-auto sm:w-auto flex items-center space-x-2 sm:space-x-3"
-          style={{ maxWidth: "320px" }}
+          className="fixed bottom-4 left-4 right-4 sm:left-auto sm:right-8 z-50 bg-yellow-400 text-black p-2 rounded-md shadow-md flex items-start space-x-2 sm:space-x-3"
+          style={{ maxWidth: "320px", width: "100%" }}
         >
-          <div className="flex-1">
+          <div className="flex-1 overflow-hidden">
             {firstBanner.image_url && (
               <img
                 src={firstBanner.image_url}
                 alt="Banner"
-                className="mb-1 sm:mb-2 w-full rounded max-h-20 sm:max-h-28 object-cover"
+                className="w-full rounded mb-1 max-h-20 object-cover"
               />
             )}
             <a
               href={firstBanner.link || "#"}
               target="_blank"
               rel="noopener noreferrer"
-              className="block font-bold text-xs sm:text-base mb-0.5 sm:mb-1 truncate"
+              className="block font-bold text-xs sm:text-sm truncate"
             >
-              Promo Spesial Bulan Ini!
+              {firstBanner.title || "Promo Spesial Bulan Ini!"}
             </a>
           </div>
           <button
             onClick={() => handleClose(0)}
-            className="text-black hover:text-gray-700 font-bold text-xl sm:text-2xl leading-none ml-1 sm:ml-2"
+            className="text-black hover:text-gray-700 font-bold text-xl sm:text-2xl leading-none ml-1"
             aria-label="Close banner"
           >
             &times;
@@ -113,29 +121,29 @@ function Banner() {
       {/* Banner Atas Floating (Second Banner) */}
       {visible[1] && secondBanner && (
         <div
-          className="fixed right-4 left-4 sm:right-8 sm:left-auto bg-yellow-400 text-black p-2 sm:p-3 rounded-md shadow-md text-center z-50 max-w-xs sm:max-w-sm w-auto sm:w-auto flex items-center space-x-2 sm:space-x-3"
-          style={{ bottom: bottomSecond }}
+          className="fixed left-4 right-4 sm:left-auto sm:right-8 z-50 bg-yellow-400 text-black p-2 rounded-md shadow-md flex items-start space-x-2 sm:space-x-3"
+          style={{ bottom: bottomSecond, maxWidth: "320px", width: "100%" }}
         >
-          <div className="flex-1">
+          <div className="flex-1 overflow-hidden">
             {secondBanner.image_url && (
               <img
                 src={secondBanner.image_url}
                 alt="Banner"
-                className="mb-1 sm:mb-2 w-full rounded max-h-20 sm:max-h-28 object-cover"
+                className="w-full rounded mb-1 max-h-20 object-cover"
               />
             )}
             <a
               href={secondBanner.link || "#"}
               target="_blank"
               rel="noopener noreferrer"
-              className="block font-bold text-xs sm:text-base mb-0.5 sm:mb-1 truncate"
+              className="block font-bold text-xs sm:text-sm truncate"
             >
-              Promo Spesial Bulan Ini!
+              {secondBanner.title || "Promo Spesial Bulan Ini!"}
             </a>
           </div>
           <button
             onClick={() => handleClose(1)}
-            className="text-black hover:text-gray-700 font-bold text-xl sm:text-2xl leading-none ml-1 sm:ml-2"
+            className="text-black hover:text-gray-700 font-bold text-xl sm:text-2xl leading-none ml-1"
             aria-label="Close banner"
           >
             &times;

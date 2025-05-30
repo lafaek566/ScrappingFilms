@@ -1,5 +1,6 @@
 import React, { useRef, useEffect, useState } from "react";
 import { FaChevronLeft, FaChevronRight } from "react-icons/fa";
+import { useNavigate } from "react-router-dom";
 
 const getYouTubeId = (url) => {
   if (!url || typeof url !== "string") return null;
@@ -24,8 +25,8 @@ function Hero({ films }) {
   const scrollIntervalRef = useRef(null);
   const scrollSpeed = 0.5;
   const [selectedTrailer, setSelectedTrailer] = useState(null);
+  const navigate = useNavigate();
 
-  // Start auto scroll animation loop
   const startAutoScroll = () => {
     const scrollContainer = scrollRef.current;
     if (!scrollContainer) return;
@@ -33,7 +34,6 @@ function Hero({ films }) {
     let animationFrameId;
 
     const step = () => {
-      // Buffer 1px supaya tidak lompat bolak-balik terus
       if (scrollContainer.scrollLeft >= scrollContainer.scrollWidth / 2 - 1) {
         scrollContainer.scrollLeft = 0;
       } else {
@@ -43,26 +43,22 @@ function Hero({ films }) {
     };
 
     animationFrameId = requestAnimationFrame(step);
-
     scrollIntervalRef.current = {
       cancel: () => cancelAnimationFrame(animationFrameId),
     };
   };
 
-  // Stop auto scroll animation
   const stopAutoScroll = () => {
     if (scrollIntervalRef.current) {
       scrollIntervalRef.current.cancel();
     }
   };
 
-  // Start auto scroll on mount, stop on unmount
   useEffect(() => {
     startAutoScroll();
     return () => stopAutoScroll();
   }, []);
 
-  // Pause auto scroll on mouse enter, resume on mouse leave (desktop only)
   useEffect(() => {
     const container = scrollRef.current;
     if (!container) return;
@@ -83,7 +79,6 @@ function Hero({ films }) {
     };
   }, []);
 
-  // Handle drag scroll + pause/resume auto scroll during drag
   useEffect(() => {
     const container = scrollRef.current;
     if (!container) return;
@@ -119,7 +114,7 @@ function Hero({ films }) {
       if (!isDown) return;
       e.preventDefault();
       const x = e.pageX - container.offsetLeft;
-      const walk = (x - startX) * 2; // scroll-fast
+      const walk = (x - startX) * 2;
       container.scrollLeft = scrollLeft - walk;
     };
 
@@ -136,7 +131,6 @@ function Hero({ films }) {
     };
   }, []);
 
-  // Scroll left/right buttons
   const handleScroll = (direction) => {
     if (!scrollRef.current) return;
     const scrollAmount = 300;
@@ -146,7 +140,32 @@ function Hero({ films }) {
     });
   };
 
-  // Duplicate films list for infinite scroll illusion
+  const handleWatchClick = (film) => {
+    if (film.original_url) {
+      navigate("/video-player", {
+        state: {
+          videoUrl: film.original_url,
+          ...film,
+        },
+      });
+    } else if (film.proxy_urls && Object.keys(film.proxy_urls).length > 0) {
+      const firstQuality = Object.keys(film.proxy_urls)[0];
+      navigate("/video-player", {
+        state: {
+          videoUrl: film.proxy_urls[firstQuality],
+          title: film.title,
+        },
+      });
+    } else if (film.proxy_url) {
+      navigate("/video-player", {
+        state: {
+          videoUrl: film.proxy_url,
+          ...film,
+        },
+      });
+    }
+  };
+
   const limitedFilms = films.slice(0, 10);
   const displayFilms = [...limitedFilms, ...limitedFilms];
 
@@ -155,7 +174,6 @@ function Hero({ films }) {
       <h2 className="text-3xl font-bold mb-6 text-center">Film Populer</h2>
 
       <div className="relative">
-        {/* Tombol kiri */}
         <button
           onClick={() => handleScroll("left")}
           className="flex absolute left-0 top-1/2 -translate-y-1/2 bg-black bg-opacity-50 text-white p-2 rounded-full z-20 hover:bg-opacity-80 backdrop-blur-sm"
@@ -164,7 +182,6 @@ function Hero({ films }) {
           <FaChevronLeft size={20} />
         </button>
 
-        {/* Carousel */}
         <div
           ref={scrollRef}
           className="flex overflow-x-auto scrollbar-hide scroll-smooth space-x-4 cursor-grab"
@@ -175,11 +192,7 @@ function Hero({ films }) {
             return (
               <div
                 key={idx}
-                className="flex-shrink-0
-                  w-40 h-56  sm:w-48 sm:h-64 md:w-56 md:h-72 lg:w-64 lg:h-80
-                  relative rounded-lg overflow-hidden shadow-lg
-                  hover:scale-105 transition-transform duration-300
-                  group bg-gray-300"
+                className="flex-shrink-0 w-40 h-56 sm:w-48 sm:h-64 md:w-56 md:h-72 lg:w-64 lg:h-80 relative rounded-lg overflow-hidden shadow-lg hover:scale-105 transition-transform duration-300 group bg-gray-300"
               >
                 <img
                   src={thumbnail}
@@ -195,16 +208,12 @@ function Hero({ films }) {
                   {film.title}
                 </div>
                 <div className="absolute inset-0 bg-black bg-opacity-50 opacity-0 group-hover:opacity-100 flex flex-col items-center justify-center gap-2 transition-opacity duration-300 px-2">
-                  {film.original_url && (
-                    <a
-                      href={film.original_url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded text-sm sm:text-base"
-                    >
-                      Watch
-                    </a>
-                  )}
+                  <button
+                    onClick={() => handleWatchClick(film)}
+                    className="bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded text-sm sm:text-base"
+                  >
+                    Watch
+                  </button>
                   {film.trailer_url && (
                     <button
                       onClick={() => setSelectedTrailer(film.trailer_url)}
@@ -219,7 +228,6 @@ function Hero({ films }) {
           })}
         </div>
 
-        {/* Tombol kanan */}
         <button
           onClick={() => handleScroll("right")}
           className="flex absolute right-0 top-1/2 -translate-y-1/2 bg-black bg-opacity-50 text-white p-2 rounded-full z-20 hover:bg-opacity-80 backdrop-blur-sm"
@@ -229,7 +237,6 @@ function Hero({ films }) {
         </button>
       </div>
 
-      {/* Popup trailer */}
       {selectedTrailer && (
         <div className="fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center z-50 p-4">
           <div className="bg-black rounded-lg overflow-hidden max-w-3xl w-full relative">

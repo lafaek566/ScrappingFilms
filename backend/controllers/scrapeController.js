@@ -24,13 +24,17 @@ export const createFilm = async (req, res) => {
     country,
     artists,
     director,
+    genre,
+    synopsis, // ✅ Tambahkan ini
+    imdb_rating, // ✅ Tambahkan ini
+    imdb_votes, // ✅ Tambahkan ini
   } = req.body;
 
   try {
     const [result] = await pool.query(
       `INSERT INTO films5 
-      (title, original_url, proxy_url, poster_url, thumbnail_url, rating, quality, trailer_url, country, artists, director)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      (title, original_url, proxy_url, poster_url, thumbnail_url, rating, quality, trailer_url, country, artists, director, genre, synopsis, imdb_rating, imdb_votes)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         title,
         original_url,
@@ -43,6 +47,10 @@ export const createFilm = async (req, res) => {
         country,
         artists,
         director,
+        genre,
+        synopsis,
+        imdb_rating,
+        imdb_votes,
       ]
     );
 
@@ -98,6 +106,10 @@ export const updateFilm = async (req, res) => {
     country,
     artists,
     director,
+    genre,
+    synopsis,
+    imdb_rating,
+    imdb_votes,
   } = req.body;
 
   try {
@@ -105,7 +117,8 @@ export const updateFilm = async (req, res) => {
       `UPDATE films5 SET 
         title = ?, original_url = ?, proxy_url = ?, poster_url = ?, 
         thumbnail_url = ?, rating = ?, quality = ?, trailer_url = ?, 
-        country = ?, artists = ?, director = ? 
+        country = ?, artists = ?, director = ?, genre = ?, 
+        synopsis = ?, imdb_rating = ?, imdb_votes = ?
       WHERE id = ?`,
       [
         title,
@@ -119,15 +132,13 @@ export const updateFilm = async (req, res) => {
         country,
         artists,
         director,
+        genre,
+        synopsis,
+        imdb_rating,
+        imdb_votes,
         id,
       ]
     );
-
-    if (result.affectedRows === 0) {
-      return res
-        .status(404)
-        .json({ message: "Film tidak ditemukan untuk update" });
-    }
 
     res.status(200).json({ message: "Film berhasil diperbarui" });
   } catch (error) {

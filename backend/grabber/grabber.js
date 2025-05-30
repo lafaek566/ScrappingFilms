@@ -140,6 +140,59 @@ export async function updateVideoUrls() {
           }
         } catch {}
 
+        // --- Ambil genre ---
+        let genre = null;
+        try {
+          genre = await page.evaluate(() => {
+            const divs = Array.from(document.querySelectorAll("div"));
+            for (const div of divs) {
+              const h2 = div.querySelector("h2");
+              if (h2 && h2.textContent.includes("Genre")) {
+                // Cari semua link <a> dalam div yang sama
+                const links = div.querySelectorAll("a");
+                if (links.length > 0) {
+                  return Array.from(links)
+                    .map((a) => a.textContent.trim())
+                    .join(", ");
+                }
+              }
+            }
+            return null;
+          });
+        } catch {
+          genre = null;
+        }
+
+        // --- Ambil IMDb rating dan votes ---
+        let imdbRating = null;
+        let imdbVotes = null;
+        try {
+          const imdbData = await page.evaluate(() => {
+            const divs = Array.from(document.querySelectorAll("div"));
+            for (const div of divs) {
+              const h2 = div.querySelector("h2");
+              if (h2 && h2.textContent.includes("IMDb")) {
+                const h3s = div.querySelectorAll("h3");
+                if (h3s.length >= 3) {
+                  const rating = h3s[0].textContent.trim();
+                  const votesText = h3s[2].textContent.trim(); // contoh: "7314 users" atau "from 7314 users"
+                  const votesMatch = votesText.match(/[\d,]+/);
+                  const votes = votesMatch
+                    ? votesMatch[0].replace(/,/g, "")
+                    : null;
+                  return { rating, votes };
+                }
+              }
+            }
+            return null;
+          });
+
+          if (imdbData) {
+            imdbRating = imdbData.rating;
+            imdbVotes = imdbData.votes;
+          }
+        } catch {}
+
         let videoUrl = null;
         let proxyUrl = null;
 
@@ -168,7 +221,9 @@ export async function updateVideoUrls() {
           } catch {}
 
           proxyUrl = idParam
-            ? `https://cloud.hownetwork.xyz/video.php?id=${idParam}`
+            ? `https://playeriframe.lol/iframe.php?url=${encodeURIComponent(
+                `https://cloud.hownetwork.xyz/video.php?id=${idParam}`
+              )}`
             : videoUrl;
 
           const res = await fetch(proxyUrl, { method: "HEAD" });
@@ -181,6 +236,13 @@ export async function updateVideoUrls() {
           continue;
         }
 
+        let synopsis = null;
+        try {
+          synopsis = await page.$eval("blockquote", (el) =>
+            el.innerText.trim()
+          );
+        } catch {}
+
         try {
           const artistsStr = artists.length > 0 ? artists.join(", ") : null;
 
@@ -188,8 +250,9 @@ export async function updateVideoUrls() {
             `INSERT INTO films5 (
               title, original_url, proxy_url, poster_url,
               thumbnail_url, rating, quality, trailer_url,
-              country, artists, director
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+              country, artists, director, synopsis,
+              genre, imdb_rating, imdb_votes
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             ON DUPLICATE KEY UPDATE
               original_url = VALUES(original_url),
               proxy_url = VALUES(proxy_url),
@@ -200,7 +263,11 @@ export async function updateVideoUrls() {
               trailer_url = VALUES(trailer_url),
               country = VALUES(country),
               artists = VALUES(artists),
-              director = VALUES(director)`,
+              director = VALUES(director),
+              synopsis = VALUES(synopsis),
+              genre = VALUES(genre),
+              imdb_rating = VALUES(imdb_rating),
+              imdb_votes = VALUES(imdb_votes)`,
             [
               title,
               videoUrl,
@@ -213,6 +280,10 @@ export async function updateVideoUrls() {
               country,
               artistsStr,
               director,
+              synopsis,
+              genre,
+              imdbRating,
+              imdbVotes,
             ]
           );
 

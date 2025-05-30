@@ -6,6 +6,7 @@ import Register from "./Page/Register";
 import Admin from "./Page/Admin";
 import AdminBanner from "./Page/AdminBanner";
 import ScrapeButton from "./components/ScrapeButton";
+import VideoPlayer from "./components/VideoPlayer";
 
 function App() {
   return (
@@ -20,6 +21,7 @@ function App() {
         <Route path="/admin/banner" element={<AdminBanner />} />
         {/* Route admin scrape tanpa proteksi */}
         <Route path="/admin/scrape" element={<ScrapeButton />} />
+        <Route path="/video-player" element={<VideoPlayer />} />
       </Routes>
     </BrowserRouter>
   );
